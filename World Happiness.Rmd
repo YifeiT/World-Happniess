@@ -1,8 +1,10 @@
 ---
-title: "HappyMarkdown"
+title: "World Happiness"
 author: "Group 16"
-date: "20/06/2021"
-output: pdf_document
+date: "2021/6/21"
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -22,16 +24,21 @@ library(GGally)
 library(plotly)
 ```
 
+
+
 ```{r data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-#setwd(dir = "D:\\STUDY\\GLASGOW\\Semester-2\\Data Analysis Skills\\Gruopwork\\Groupwork - 1 poster")
+#Read "World Happiness" dataset into R.
+setwd(dir = "D:\\STUDY\\GLASGOW\\Semester-2\\Data Analysis Skills\\Gruopwork\\Groupwork - 1 poster")
 happy <- read_csv("happiness.csv")
 happy <- as_tibble(happy)
 ```
 
 This code adds a column to the data, so each country is either Africa or Rest of the World.
 
-```{r addcol}
 
+
+```{r addcol}
+#Add a column called African, if countries are in Africa, the value is Africa, otherwise, the value is World.
 happy <- happy %>%
   mutate(African = ifelse(happy$`Regional indicator` == "Sub-Saharan Africa" | happy$`Regional indicator` == "Middle East and North Africa",
                 "Africa","World"))
@@ -44,7 +51,10 @@ The World Happiness Dataset is the iconic statistical data of global happiness. 
 
 # Explanatory analysis {#sec:Explan}
 
+
+
 ```{r summ}
+#Give summary to Happiness score, including n, mean, standard deviation, 1st quantile, 3rd quantile, min and max value, median value.
 happy %>%
   group_by(`Regional indicator`) %>%
   summarise(n=n(),  Mean=round(mean(`Ladder score`),2), SD=round(sd(`Ladder score`),2), FQ=quantile(`Ladder score`, 0.25), TQ=quantile(`Ladder score`, 0.75),
@@ -53,11 +63,19 @@ happy %>%
   kable(col.names = c("Region","Number", "Mean", "SD", "1st Q", "3rd Q", "Min.", "Max","Median"),        
         caption = '\\label{tab:summary} Summary statistics') %>%
   kable_styling(font_size = 10, latex_options = "hold_position")
-
 ```
 
 
-Also summary data for Africa and Rest of the World
+
+```{r}
+#The graph shows the Happniess score in each region.
+ggplot(data = happy,mapping = aes(y=`Regional indicator`,x=`Ladder score`,color=`Regional indicator`))+
+  geom_point()+
+  labs(x="Happiness score",y="Regions")+
+  theme(legend.position="none")
+```
+
+Also summary data for Africa and Rest of the World.
 
 ```{r sumafrica}
 #summary stats for AFRICA and REST OF WORLD
@@ -90,11 +108,13 @@ bootstrap_distribution_mean %>%
 percentile_ci <- bootstrap_distribution_mean %>% 
   get_ci()
 
-bootstrap_distribution_mean %>% 
+boots<-bootstrap_distribution_mean %>% 
   visualize(endpoints = percentile_ci, direction = "between")
-
+png(filename = "boots.png",width=1920,height=1080,units="px",res=400)
+boots
 
 ```
+
 
 This next section of code produces a boxplot of ladder score, using region as a factor for all regions.
 
@@ -102,7 +122,8 @@ This next section of code produces a boxplot of ladder score, using region as a 
 ggplot(data = happy, mapping = aes(x = factor(`Regional indicator`), 
                                          y = `Ladder score`)) + geom_boxplot(fill = "slateblue") + 
   labs(x = "Region", y = "Score", title = "Happiness score")  + 
-  scale_x_discrete(labels = unique(happy$`Regional indicator`))
+  scale_x_discrete(labels = unique(happy$`Regional indicator`))+
+  theme(axis.text.x = element_text(angle=45,hjust = 0.5,vjust = 0.5))
 
 ```
 
@@ -110,8 +131,10 @@ ggplot(data = happy, mapping = aes(x = factor(`Regional indicator`),
 Now same boxplot but just for Africa and rest of the World
 
 ```{r boxaf, eval = TRUE, out.width = '80%', fig.align = "center", fig.cap = "\\label{fig:bplot} Ladder score by Africa", fig.pos = "H"}
+
 ggplot(data = happy, mapping = aes(x = factor(African), 
-                                   y = `Ladder score`)) + geom_boxplot(fill = "slateblue") + 
+                                   y = `Ladder score`,fill = "transparent"))+ 
+  geom_boxplot(fill = "slateblue") + 
   labs(x = "Region", y = "Score", title = "Happiness score")  + 
   scale_x_discrete(labels = c("Africa","Rest of World"))
 
@@ -159,7 +182,7 @@ get_regression_table(full_model)%>%
 summary(full_model)
 ```
 
-It shows that variables "Social support" and "Freedom to make life choice" are most significant, then we check the correlationship between these six variables. 
+It shows that variables "Social support", "Freedom to make life choice" and "Logged GDP per capita" are most significant, then we check the correlationship between these six variables. 
 
 ```{r correlation}
 ggpairs(happy[,c(3,7:12)])
@@ -167,9 +190,9 @@ ggpairs(happy[,c(3,7:12)])
 
 Although "Healthy life expectancy" has the strongest correlation with "Ladder score", this variable also has the high correlation with other two variables (Logged GDP per capita and Social support). 
 
-Finally, we decide to use two variables, Social support and Freedom to make life choices to fit our model.
+Finally, we decide to use three variables, Logged GDP per capita, Social support and Freedom to make life choices to fit our model.
 
-$$\widehat{\mbox{Ladder score}} = \widehat\alpha 
+$$\widehat{\mbox{Happiness score}} = \widehat\alpha 
 +\widehat\beta_{\mbox{1}} \cdot \mbox{Social support} + \widehat\beta_{\mbox{2}} \cdot \mbox{Freedom}, $$
 
 where 
@@ -179,16 +202,18 @@ $\widehat\alpha$ is the intercept;
 $\widehat\beta_{\mbox{i}}$ is the coefficeint for each variable (i=1,2);
 
 ```{r final_model}
-final_model<-lm(`Ladder score`~`Social support`+`Freedom to make life choices`,data = happy)
+final_model<-lm(`Ladder score`~`Social support`+`Freedom to make life choices`+`Logged GDP per capita`,data = happy)
+summary(final_model)
 get_regression_table(final_model)%>%
   dplyr::select(term,estimate) %>%  
   kable(caption = '\\label{tab:reg} Estimates of the parameters from the final fitted linear regression model.') %>%
   kable_styling(latex_options = 'HOLD_position')
+summary(final_model)
 ```
 
 Our final model shows as follows,
 
-$$\widehat{\mbox{Ladder score}} = -1.439
+$$\widehat{\mbox{Happiness score}} = -1.439
 +5.649 \cdot \mbox{Social support} + 2.993 \cdot \mbox{Freedom}, $$
 
 Before we can proceed to use the fitted model, we must check the assumption of the model. we assesses the model assumptions by plotting the residuals against the explanatory variable in Figure \ref{fig:resids_1} ,\ref{fig:resids_1} and a histogram (Figure \ref{fig:hist}) of the residuals to assess whether they are normally distributed.
@@ -196,6 +221,8 @@ Before we can proceed to use the fitted model, we must check the assumption of t
 ```{r assumptions}
 regression_points <- get_regression_points(final_model)
 ```
+
+Check the first assumption of variable "Social support".
 
 ```{r,echo=TRUE,fig.align='center',fig.width=13,fig.cap="\\label{fig:resids_1} Scatterplots of the residuals.",fig.pos='H',message=FALSE}
 ggplot(regression_points, aes(x = `Social support`,y=residual)) +
@@ -205,10 +232,21 @@ ggplot(regression_points, aes(x = `Social support`,y=residual)) +
   geom_hline(yintercept = 0,col="blue",size=1)
 ```
 
+Check the first assumption of variable "Freedom to make life choices".
+
 ```{r,echo=TRUE,fig.align='center',fig.width=13,fig.cap="\\label{fig:resids_2} Scatterplots of the residuals.",fig.pos='H',message=FALSE}
 ggplot(regression_points, aes(x = `Freedom to make life choices`, y = residual)) +
   geom_point() +
   labs(x = "Freedom to make life choices", y = "Residual", title = "Residuals vs Freedom to make life choices")  +
+  geom_hline(yintercept = 0, col = "blue", size = 1)
+```
+
+Check the first assumption of variable "Logged GDP per capita".
+
+```{r,echo=TRUE,fig.align='center',fig.width=13,fig.cap="\\label{fig:resids_2} Scatterplots of the residuals.",fig.pos='H',message=FALSE}
+ggplot(regression_points, aes(x = `Logged GDP per capita`, y = residual)) +
+  geom_point() +
+  labs(x = "Logged GDP per capita", y = "Residual", title = "Residuals vs Freedom to make life choices")  +
   geom_hline(yintercept = 0, col = "blue", size = 1)
 ```
 
@@ -224,15 +262,31 @@ The histgram support the assumption of normally distributed errors in the model.
 
 ## Question 2
 
-In question 2, we discuss the difference between Africa and other countries.
+It is interesting to look at how corruption affects the happiness score for Africa compared to the rest of the World, and see if there are any differences.
 
-```{r Africa,fig.align='center',fig.cap="\\label{fig:Africa} Scatterplots of of Social support, Freedome to make life choice and Ladder score in Africa and other countries.",fig.pos='H',message=FALSE}
-ggplot(data = happy,mapping = aes(x=`Social support`,y=`Ladder score`,group=African,color=African,size=`Freedom to make life choices`))+
-  geom_point()+
-  labs(x="Socail support",y="Ladder score",title = "Ladder score, Social supprot and Freedom to make life choices")+
-  geom_smooth(method = "lm", se = FALSE,aes(color=African,linetype=African)) + 
-  geom_hline(yintercept = 5,color="purple")
+Fitting an interaction model with separate intercepts and gradients.
 
+$$\widehat{\mbox{Happiness score}} = \widehat\alpha 
++\widehat\beta_{\mbox{1}} \cdot \mbox{Region} + \widehat\beta_{\mbox{2}} \cdot \mbox{Corruption}+\widehat\beta_{\mbox{3}} \cdot \mbox{Region}\cdot \mbox{Corruption}, $$
+
+where 
+
+$\widehat\alpha$ is the intercept;
+
+$\widehat\beta_{\mbox{i}}$ is the coefficeint for each variable (i=1,2,3);
+
+```{r}
+#fit an interaction model
+Afr.model <- lm(`Ladder score` ~ `Perceptions of corruption` * African, data = happy)
+summary(Afr.model)
+get_regression_table(Afr.model)
 ```
 
-Figure \ref{fig:Africa} shows that most non-African countries have higher Ladder scores than African countries, also non-African countries have higher social support and freedom to make life choice.
+```{r}
+#Draw the graph to show that corruption variable have different impact on Afircan countries and Non-African countries.
+Q2<-ggplot(happy, aes(x = `Perceptions of corruption`, y = `Ladder score`, color = African)) +
+  geom_jitter() +
+  labs(x = "Perceptions of corruption", y = "Ladder Score", color = "African") +
+  geom_smooth(method = "lm", se = FALSE)
+png(filename = "Q2.png",width=1920,height=1080,units="px",res=400)
+```
