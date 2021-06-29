@@ -40,7 +40,7 @@ happy <- happy %>%
 
 # Introduction {#sec:Intro}
 
-The World Happiness Dataset is the iconic statistical data of global happiness. It contains six critical factors: economic production, social support, life expectancy, freedom, absence of corruption, and generosity. To find which factors are most influential to the ladder score, we fitted a linear regression model with all relevant explanatory variables. Noting that Africa’s ladder score seems the smallest amongst all countries, we used bootstrapping to find the 95th percentile of the difference in ladder score between Africa and the rest of the world and fit the regression model for these two cases.
+The World Happiness Dataset is the iconic statistical data of global happiness, the happiness score is determined by six factors, economic production, social support, life expectancy, freedom, absence of corruption, and generosity. This poster displays a multiple linear regression model to explain the relationship between happiness score and six variables. Then shows how corruption impact on happiness score between Africa and other countries.
 
 # Explanatory analysis {#sec:Explan}
 
@@ -75,7 +75,7 @@ happy %>%
 ```
 
 
-This code uses bootstrapping to find a 95% confidence interval for the mean ladder score of all the data
+This code uses bootstrapping to find a 95% confidence interval for the mean ladder score of all the data.
 
 
 ```{r bootstrap}
@@ -118,7 +118,7 @@ ggplot(data = happy, mapping = aes(x = factor(African),
 ```
 
 
-Using bootstrapping (week 7), we can find a 95th percentile of the difference in ladder score between Africa and rest of World.  
+Using bootstrapping (week 7), we can find a 95th percentile of the difference in happiness score between Africa and rest of World.  
 This shows that the score is between 1.65 and 1.11 lower in Africa than rest of World.
 
 ```{r boot}
@@ -159,7 +159,7 @@ get_regression_table(full_model)%>%
 summary(full_model)
 ```
 
-It shows that variables "Social support" and "Freedom to make life choice" are most significant, then we check the correlationship between these six variables. 
+It shows that variables "Social support" and "Freedom to make life choice" are most significant, then we check the correlation between these six variables. 
 
 ```{r correlation}
 ggpairs(happy[,c(3,7:12)])
