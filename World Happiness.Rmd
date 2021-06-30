@@ -1,7 +1,7 @@
 ---
 title: "World Happiness"
 author: "Group 16"
-date: "2021/6/21"
+date: "2021/6/30"
 output:
   html_document: default
   pdf_document: default
@@ -12,7 +12,6 @@ knitr::opts_chunk$set(echo = FALSE, eval = TRUE, warning = FALSE, message = FALS
 ```
 
 ```{r libraries}
-#just have a try
 library(tidyverse)
 library(moderndive)
 library(skimr)
@@ -23,6 +22,7 @@ library(ggplot2)
 library(infer)
 library(GGally)
 library(plotly)
+library(RColorBrewer)
 ```
 
 
@@ -132,10 +132,9 @@ ggplot(data = happy, mapping = aes(x = factor(`Regional indicator`),
 Now same boxplot but just for Africa and rest of the World
 
 ```{r boxaf, eval = TRUE, out.width = '80%', fig.align = "center", fig.cap = "\\label{fig:bplot} Ladder score by Africa", fig.pos = "H"}
-
 ggplot(data = happy, mapping = aes(x = factor(African), 
                                    y = `Ladder score`,fill = "transparent"))+ 
-  geom_boxplot(fill = "slateblue") + 
+  geom_boxplot(fill = brewer.pal(7, "Set1")[3]) + 
   labs(x = "Region", y = "Score", title = "Happiness score")  + 
   scale_x_discrete(labels = c("Africa","Rest of World"))
 
