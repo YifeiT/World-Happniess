@@ -290,3 +290,9 @@ Q2<-ggplot(happy, aes(x = `Perceptions of corruption`, y = `Ladder score`, color
   geom_smooth(method = "lm", se = FALSE)
 png(filename = "Q2.png",width=1920,height=1080,units="px",res=400)
 ```
+# Conclusions {#sec:Conc}
+“Logged GDP per capita”, “Freedom to make life choice” and “Social support” have stronger linear relationship with “Happiness score”.
+
+Most of African countries have lower happiness score than other countries.
+
+Corruption has less impact on African countries, while for the rest of the world, this variables will significantly reduce happiness.
